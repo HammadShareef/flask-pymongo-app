@@ -19,33 +19,35 @@ def index():
 
 @app.route('/login',methods=['POST'])
 def login():
-    if request.method=='POST':
-        users=mongo.db.Login
-        login_user=users.find_one({'name':request.form['username']})
+    users=mongo.db.Login
+    login_user=users.find_one({'name':request.form['username']})
     
         
-        if login_user:
-            if bcrypt.hashpw(request.form['pass'].encode('utf-8'),login_user['Password'])== login_user['Password']:
-                session['username']=request.form['username']
-                return redirect(url_for('index'))
+    if login_user:
+        if bcrypt.hashpw(request.form['pass'].encode('utf-8'),login_user['Password'])== login_user['Password']:
+            session['username']=request.form['username']
+            return redirect(url_for('index'))
 
 
-        return'invalid username/password combination'
+    return'invalid username/password combination'
                 
 @app.route('/register',methods=['POST','GET'])
 
 def register():
-    users=mongo.db.Login
-    existing_user=users.find_one({'name':request.form['username']})
-    if existing_user is None:
-        hashpass=bcrypt.hashpw(request.form['pass'].encode('utf-8'),bcrypt.gensalt())
-        users.insert({'name':request.form['username'],'Password':hashpass})
-        session['username']=request.form['username']
-        return redirect(url_for(index))
+    if request.method=='POST':
+        users=mongo.db.Login
+        existing_user=users.find_one({'name':request.form['username']})
         
-    return'That Username already exists!'
+        if existing_user is None:
+            hashpass=bcrypt.hashpw(request.form['pass'].encode('utf-8'),bcrypt.gensalt())
+            users.insert({'name':request.form['username'],'Password':hashpass})
+            session['username']=request.form['username']
+            return redirect(url_for('index'))
 
 
+        return'That Username already exists!'
+    
+    
     return render_template('register.html')
 
 if __name__ == '__main__':
